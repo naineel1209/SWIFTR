@@ -8,9 +8,15 @@ const errorHandlerMiddleware = (err, req, res, next) => {
 
     if (err.name === 'UserExistsError') {
         // Handle user exists errors
-        res.status(409).send({ msg: 'User already exists' });
-    } else if (err.name === 'IncorrectPasswordError') {
+        customError.statusCode = 409;
+        customError.msg = "User already exists";
+        // res.status(409).send({ msg: 'User already exists' });
+    }
+
+    if (err.name === 'IncorrectPasswordError') {
         // Handle incorrect password errors
+        customError.statusCode = 401;
+        customError.msg = "Invalid username or password";
         res.status(401).send({ msg: 'Invalid username or password' });
     }
 
@@ -20,12 +26,14 @@ const errorHandlerMiddleware = (err, req, res, next) => {
             .join(',');
         customError.statusCode = 400;
     }
+
     if (err.code && err.code === 11000) {
         customError.msg = `Duplicate value entered for ${Object.keys(
             err.keyValue
         )} field, please choose another value`;
         customError.statusCode = 400;
     }
+
     if (err.name === 'CastError') {
         customError.msg = `No item found with id : ${err.value}`;
         customError.statusCode = 404;

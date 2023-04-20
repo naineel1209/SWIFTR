@@ -11,20 +11,36 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const flash = require('connect-flash');
 
+//configuring redis /<**>/ headache code
+const redis = require('redis');
+const RedisStore = require("connect-redis").default;
+
+const redisClient = redis.createClient({
+  port: 6379,
+  host: 'localhost',
+});
+
+//create a redis client and then connect to it;
+redisClient.connect().catch(console.error);
+let redisStore = new RedisStore({ client: redisClient });
+
 const sessionConfig = {
+  store: redisStore,
   secret: "50e88e5c672934b458f665908ad4871346e6b6d6b7ecb6db4278bbc327798bf16215a7f1e429ff0b8075f5f68539b975ae690bb8703ee008627220c4fdf7acd2",
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
     maxAge: 1000 * 3600 * 24 * 7,
-    expires: Date.now() + 1000 * 3600 * 24 * 7,
-    key: "swiftr_id"
-  }
+    name: "swiftr_id",
+    httpOnly: true,
+    secure: false,
+  },
+  name: "sessionId",
 }
 
 // routes for routing
 const indexRouter = require('./routes/indexRoutes');
-const usersRouter = require('./routes/userRoutes');
+const servicesRouter = require('./routes/servicesRoutes');
 const authRouter = require('./routes/authRoutes')
 const { connectDB } = require('./db/connectDB');
 
@@ -57,18 +73,24 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+//middleware to handle the current user
 app.use((req, res, next) => {
+  console.log(req.isAuthenticated());
   res.locals.currentUser = req.user;
   console.log(res.locals.currentUser);
   res.locals.returnTo = req.session.returnTo;
   next();
 })
 
-app.use('/', indexRouter);
-app.use('/api/v1/auth', authRouter);
-app.use('/users', usersRouter);
+
+//route to handle requests
+app.use('/', indexRouter);  //views path 
+app.use('/api/v1/auth', authRouter); //api path
+app.use('/api/v1/products', servicesRouter); //api path
+
+//path to handle loginError
 app.get('/loginError', async (req, res, next) => {
-  return res.status(403).send({ msg: "Incorrect Password or Username" });
+  return res.status(403).send({ msg: "Incorrect Password or Username", redirectUrl: "/login" });
 })
 
 // error handler
