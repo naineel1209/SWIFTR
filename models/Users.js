@@ -1,3 +1,4 @@
+// TODO: Add profile photo option for the last
 const mongoose = require('mongoose');
 const passportLocalMongoose = require('passport-local-mongoose');
 
@@ -27,7 +28,7 @@ const userSchema = new mongoose.Schema({
     state: {
         type: String,
         required: true,
-    }
+    },
 }, { timestamps: true });
 
 userSchema.plugin(passportLocalMongoose);
