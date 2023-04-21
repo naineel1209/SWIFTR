@@ -1,5 +1,9 @@
-const mongoose = require('mongoose');
+//  relocate the schemas to particular locations
 
+const mongoose = require('mongoose');
+const Review = require('./Reviews');
+
+//Defining the Service Schema
 const serviceSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -17,6 +21,7 @@ const serviceSchema = new mongoose.Schema({
     image: {
         type: String,
         default: '/uploads/example.jpg',
+        required: true,
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -27,56 +32,26 @@ const serviceSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-}, { timestamps: true });
-
-// Define the Booking schema
-const bookingSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    service: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Service',
-        required: true
-    },
-    date: {
-        type: Date,
-        required: true
-    },
-    status: {
-        type: String,
-        enum: ['pending', 'confirmed', 'cancelled'],
-        default: 'pending'
-    },
-}, { timestamps: true });
-
-// Define the Review schema
-const reviewSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    services: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Service',
-        required: true
-    },
-    rating: {
+    avgRating: {
         type: Number,
-        required: true
     },
-    review: {
-        type: String,
-        required: true
+    noOfReviews: {
+        type: Number,
     }
-}, { timestamps: true });
+}, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
+
+serviceSchema.virtual("reviews", {
+    ref: "Review",
+    localField: '_id',
+    foreignField: 'services',
+    justOne: false,
+})
+
+serviceSchema.post('findOneAndDelete', async function (data, next) {
+    const reviews = await Review.deleteMany({ services: data._id });
+    console.log(reviews);
+    next();
+})
 
 // Export the schemas as Mongoose models
-module.exports = {
-    Service: mongoose.model('Service', serviceSchema),
-    Booking: mongoose.model('Booking', bookingSchema),
-    Review: mongoose.model('Review', reviewSchema),
-}
+module.exports = mongoose.model("Service", serviceSchema);

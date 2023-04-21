@@ -1,4 +1,6 @@
 // TODO: Add profile photo option for the last
+
+// done TODO: To understand the flow of the application and make  changes in authorizeUser middleware 
 const mongoose = require('mongoose');
 const passportLocalMongoose = require('passport-local-mongoose');
 
@@ -9,7 +11,7 @@ const userSchema = new mongoose.Schema({
         unique: true,
     },
     roles: {
-        type: [String],
+        type: String,
         enum: ["user", "admin", "provider"],
         required: [true, "Please enter a valid role"],
     },

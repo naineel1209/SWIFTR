@@ -50,6 +50,8 @@ const User = require("./models//Users");
 //middleware setup
 const errorHandler = require('./middlewares/errorHandler');
 const notFound = require('./middlewares/notFound');
+const { isLoggedIn, storeReturnTo } = require('./middlewares//isLoggedIn')
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -75,18 +77,23 @@ passport.deserializeUser(User.deserializeUser());
 
 //middleware to handle the current user
 app.use((req, res, next) => {
+
   console.log(req.isAuthenticated());
   res.locals.currentUser = req.user;
+
   console.log(res.locals.currentUser);
   res.locals.returnTo = req.session.returnTo;
+
   next();
 })
 
 
 //route to handle requests
+
+//TODO: all the get routes go in the indexRouter
 app.use('/', indexRouter);  //views path 
 app.use('/api/v1/auth', authRouter); //api path
-app.use('/api/v1/products', servicesRouter); //api path
+app.use('/api/v1/services', isLoggedIn, servicesRouter); //api path
 
 //path to handle loginError
 app.get('/loginError', async (req, res, next) => {

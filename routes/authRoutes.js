@@ -9,15 +9,20 @@ const { isLoggedIn, storeReturnTo } = require('../middlewares//isLoggedIn')
 
 
 // PATH -> /api/v1/auth/ 
+
+//register
 router
     .route('/register')
     .post(async function (req, res) {
         //getting data from body;
-        const { username, password, email, roles, phone, address, city, state } = req.body;
+        const { username, password, email, phone, address, city, state } = req.body;
 
-        if (User.countDocuments() <= 5) {
-            roles = [...roles, "admin"];
+        const count = await User.countDocuments({});
+        let role;
+        if (count <= 5) {
+            role = "admin";
         }
+        const roles = role || req.body.roles;
 
         const user = new User({ username, email, roles, phone, address, city, state });
 
@@ -33,6 +38,7 @@ router
         // return res.status(StatusCodes.CREATED).json({ user: newUser });
     });
 
+//login
 router
     .route('/login')
     .post(storeReturnTo, passport.authenticate('local', { failureRedirect: '/loginError' }), async function (req, res) {
