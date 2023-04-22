@@ -40,8 +40,10 @@ const sessionConfig = {
 
 // routes for routing
 const indexRouter = require('./routes/indexRoutes');
+const authRouter = require('./routes/authRoutes');
 const servicesRouter = require('./routes/servicesRoutes');
-const authRouter = require('./routes/authRoutes')
+const reviewsRouter = require('./routes/reviewsRoutes');
+const singleServiceReviewsRouter = require('./routes/singleServiceReviewsRoutes.js');
 const { connectDB } = require('./db/connectDB');
 
 //models for database
@@ -60,6 +62,7 @@ const PORT = process.env.PORT || 5000;
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+//all important middlewares
 app.use(logger('dev'));
 app.use(session(sessionConfig));
 app.use(express.json());
@@ -92,13 +95,15 @@ app.use((req, res, next) => {
 
 //TODO: all the get routes go in the indexRouter
 app.use('/', indexRouter);  //views path 
-app.use('/api/v1/auth', authRouter); //api path
-app.use('/api/v1/services', isLoggedIn, servicesRouter); //api path
+app.use('/api/v1/auth', authRouter); //auth api path
+app.use('/api/v1/services', isLoggedIn, servicesRouter); //services api path
+app.use('/api/v1/reviews', isLoggedIn, reviewsRouter)
+app.use('/api/v1/services/:serviceId/reviews', isLoggedIn, singleServiceReviewsRouter); //get single product review
 
 //path to handle loginError
 app.get('/loginError', async (req, res, next) => {
   return res.status(403).send({ msg: "Incorrect Password or Username", redirectUrl: "/login" });
-})
+});
 
 // error handler
 app.use(errorHandler);

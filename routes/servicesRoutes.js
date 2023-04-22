@@ -1,5 +1,5 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const { StatusCodes } = require('http-status-codes');
 const User = require('../models//Users');
 const Service = require('../models/Services');
@@ -9,7 +9,7 @@ const { CustomAPIError, BadRequestError, NotFoundError, UnauthorizedError } = re
 router
   .route('/')
   .get(async function (req, res) {
-    const services = await Service.find({}).populate('reviews');
+    const services = await Service.find({}).populate('user').populate('reviews');
 
     return res.status(StatusCodes.OK).send({ services, count: services.length, user: req.user });
   })
@@ -45,7 +45,7 @@ router
 
     return res.status(StatusCodes.OK).send({ service });
   })
-  .patch([authorizeUser('provider', 'admin')], async (req, res) => {
+  .patch(async (req, res) => {
     const { id } = req.params;
 
     const service = await Service.findByIdAndUpdate({ _id: id }, req.body, {
@@ -69,11 +69,14 @@ router
       throw new NotFoundError("No Service found for " + id);
     }
 
-    checkPermission(req.user, service);
+    await checkPermission(req.user, service);
+
+    await Service.deleteOne({ _id: service._id });
 
     return res.status(StatusCodes.OK).send({ msg: `Successfully removed service - ${service.name}`, redirectUrl: "/my-profile" });
   });
 
+module.exports = router;
 
 
 

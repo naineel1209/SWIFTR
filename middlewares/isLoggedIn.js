@@ -8,7 +8,7 @@ const isLoggedIn = async (req, res, next) => {
         return res.status(StatusCodes.UNAUTHORIZED).send({ msg: "You must be logged in to view this", redirectUrl: "/login" });
     }
 
-    return next();
+    next();
 }
 
 const storeReturnTo = async (req, res, next) => {
@@ -32,11 +32,11 @@ const checkPermission = async function (requestUser, resource) {
         return;
     }
 
-    if (requestUser._id === resource.user.toString()) {
+    if (requestUser._id.toString() === resource.user.toString()) {
         return;
     }
 
-    throw new UnauthorizedError("You are not allowed to delete this service");
+    throw new UnauthorizedError("You are not allowed to do the perform!!");
 };
 
 module.exports = { isLoggedIn, storeReturnTo, authorizeUser, checkPermission };
