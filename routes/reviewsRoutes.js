@@ -16,17 +16,18 @@ router
         return res.status(StatusCodes.OK).send({ reviews, count: reviews.length });
     })
     .post(async function (req, res) {
-        const { serviceId } = req.body;
+        const { services } = req.body;
         const userId = req.user._id;
 
-        const service = await Service.findOne({ _id: serviceId });
+
+        const service = await Service.findOne({ _id: services });
 
         if (!service) {
             throw new NotFoundError("No Service found! with id " + serviceId);
         }
 
         //check if review already submitted
-        const previousReviews = await Review.findOne({ services: serviceId, user: userId });
+        const previousReviews = await Review.findOne({ services: services, user: userId });
 
         if (previousReviews) {
             throw new UnauthorizedError("Review already submitted");
@@ -39,7 +40,7 @@ router
     })
 
 router
-    .route('/reviewId')
+    .route('/:reviewId')
     .get(async (req, res) => {
         const { id: reviewId } = req.params;
 
@@ -55,7 +56,7 @@ router
         const { reviewId } = req.params;
         const { rating, review: reviewBody } = req.body;
 
-        const review = await Review.find({ _id: reviewId });
+        const review = await Review.findOne({ _id: reviewId });
 
         if (!review) {
             throw new NotFoundError("Review not found");
@@ -65,8 +66,8 @@ router
 
         review.rating = rating;
         review.review = reviewBody;
-        await review.save();
 
+        await review.save();
         return res.status(StatusCodes.OK).send({ review });
     })
     .delete(async (req, res) => {
@@ -80,8 +81,8 @@ router
 
         await checkPermission(req.user, review);
 
-        const deletedReview = await Review.deleteOne({ _id: review._id });
-        return res.status(StatusCodes.OK).send({ msg: "User Deleted Successfully!" });
+        await review.deleteOne();
+        return res.status(StatusCodes.OK).send({ msg: "Review Deleted Successfully!" });
     })
 
 module.exports = router;

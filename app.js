@@ -43,6 +43,7 @@ const indexRouter = require('./routes/indexRoutes');
 const authRouter = require('./routes/authRoutes');
 const servicesRouter = require('./routes/servicesRoutes');
 const reviewsRouter = require('./routes/reviewsRoutes');
+const cartRouter = require('./routes/cartRoutes');
 const singleServiceReviewsRouter = require('./routes/singleServiceReviewsRoutes.js');
 const { connectDB } = require('./db/connectDB');
 
@@ -97,8 +98,9 @@ app.use((req, res, next) => {
 app.use('/', indexRouter);  //views path 
 app.use('/api/v1/auth', authRouter); //auth api path
 app.use('/api/v1/services', isLoggedIn, servicesRouter); //services api path
-app.use('/api/v1/reviews', isLoggedIn, reviewsRouter)
-app.use('/api/v1/services/:serviceId/reviews', isLoggedIn, singleServiceReviewsRouter); //get single product review
+app.use('/api/v1/reviews', isLoggedIn, reviewsRouter); // reviews api path
+app.use('/api/v1/services/:serviceId', isLoggedIn, cartRouter)
+app.use('/api/v1/services/:serviceId/reviews', isLoggedIn, singleServiceReviewsRouter); //get single productreview
 
 //path to handle loginError
 app.get('/loginError', async (req, res, next) => {

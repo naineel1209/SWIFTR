@@ -39,8 +39,10 @@ reviewSchema.statics.calculateAverageRating = async function (serviceId) {
         },
     ]);
 
+    console.log(result);
+
     try {
-        await Service.findOneAndUpdate({
+        await this.model("Service").findOneAndUpdate({
             _id: serviceId
         }, {
             avgRating: Math.ceil(result[0]?.avgRating || 0),
@@ -53,10 +55,12 @@ reviewSchema.statics.calculateAverageRating = async function (serviceId) {
 
 
 reviewSchema.post('save', async function () {
+    console.log('Inside save')
     await this.constructor.calculateAverageRating(this.services);
 })
 
-reviewSchema.post('remove', async function () {
+reviewSchema.post('deleteOne', { document: true }, async function () {
+    console.log('Inside remove');
     await this.constructor.calculateAverageRating(this.services);
 })
 

@@ -36,7 +36,7 @@ const checkPermission = async function (requestUser, resource) {
         return;
     }
 
-    throw new UnauthorizedError("You are not allowed to do the perform!!");
+    throw new UnauthorizedError("You are not allowed to do this action!!");
 };
 
 module.exports = { isLoggedIn, storeReturnTo, authorizeUser, checkPermission };
