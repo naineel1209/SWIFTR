@@ -9,16 +9,16 @@ const { checkPermission } = require('../middlewares/isLoggedIn');
 // /reviews
 router
     .route('/')
+    // use get services route to populate the services
     .get(async function (req, res) {
         //Get all the reviews
-        const reviews = await Review.find({}).populate('services');
+        const reviews = await Review.find({}).populate('services').populate('user');
 
         return res.status(StatusCodes.OK).send({ reviews, count: reviews.length });
     })
     .post(async function (req, res) {
         const { services } = req.body;
         const userId = req.user._id;
-
 
         const service = await Service.findOne({ _id: services });
 
@@ -36,7 +36,7 @@ router
         req.body.user = userId;
         const review = new Review(req.body);
         await review.save();
-        return res.status(StatusCodes.CREATED).send({ data: review })
+        return res.status(StatusCodes.CREATED).send({ data: review });
     })
 
 router

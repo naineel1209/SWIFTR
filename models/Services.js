@@ -49,7 +49,7 @@ serviceSchema.virtual("reviews", {
 
 serviceSchema.post('findOneAndDelete', async function (data, next) {
     const reviews = await Review.deleteMany({ services: data._id });
-    console.log(reviews);
+    // console.log(reviews);
     next();
 })
 

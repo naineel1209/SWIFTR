@@ -13,7 +13,7 @@ const singleOrderItem = new Schema({
         ref: "Service",
         required: true,
     },
-});
+}, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
 
 const orderSchema = new Schema({

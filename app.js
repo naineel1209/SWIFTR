@@ -50,11 +50,13 @@ const { connectDB } = require('./db/connectDB');
 
 //models for database
 const User = require("./models//Users");
+const Cart = require("./models/Carts");
 
 //middleware setup
 const errorHandler = require('./middlewares/errorHandler');
 const notFound = require('./middlewares/notFound');
-const { isLoggedIn, storeReturnTo } = require('./middlewares//isLoggedIn')
+const { isLoggedIn, storeReturnTo } = require('./middlewares//isLoggedIn');
+const { NotFoundError } = require('./errors');
 
 
 const app = express();
@@ -74,11 +76,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(flash());
 
 // starting the passport middleware
-app.use(passport.initialize());
-app.use(passport.session());
-passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+app.use(passport.initialize()); //1. initialize the passport instance
+app.use(passport.session()); // 2. passport to use the session
+passport.use(new LocalStrategy(User.authenticate())); //3. passport is to use LocalStrategy with UserAuthentication from passport-local-mongoose
+passport.serializeUser(User.serializeUser()); //4. passport to use serializeUser from passport-local-mongoose
+passport.deserializeUser(User.deserializeUser()); //5. passport to use deserializeUser from passport-local-mongoose
 
 //middleware to handle the current user
 app.use((req, res, next) => {
@@ -101,7 +103,20 @@ app.use('/api/v1/auth', authRouter); //auth api path
 app.use('/api/v1/services', isLoggedIn, servicesRouter); //services api path
 app.use('/api/v1/reviews', isLoggedIn, reviewsRouter); // reviews api path
 app.use('/api/v1/services/:serviceId', isLoggedIn, cartRouter); //add to cart functionality
-app.use('/api/v1/placeOrder', isLoggedIn, orderRouter);
+//used in a frontend route -> get current users cart items
+app
+  .get("/api/v1/getCart", async (req, res) => {
+    const userId = req.user._id;
+
+    const cart = await Cart.find({ user: userId }).populate('service');
+
+    if (!cart) {
+      throw new NotFoundError("Cart not found, try adding some items to your cart");
+    }
+
+    return res.status(StatusCodes.OK).send({ data: cart });
+  })
+app.use('/api/v1/orders', isLoggedIn, orderRouter);
 app.use('/api/v1/services/:serviceId/reviews', isLoggedIn, singleServiceReviewsRouter); //get single productreview
 
 //path to handle loginError
