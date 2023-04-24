@@ -26,7 +26,6 @@ const orderSchema = new Schema({
         ref: "User",
         required: true,
     },
-
     subtotal: {
         type: Number,
         required: true,
@@ -35,13 +34,14 @@ const orderSchema = new Schema({
         type: Number,
         required: true
     },
+    total: {
+        type: Number,
+        required: true,
+    },
     status: {
         type: String,
         enum: ["pending", "confirmed", "cancelled"],
         default: "pending",
-    },
-    user: {
-        type: Schema.Types.ObjectId,
     },
     clientSecret: {
         type: String,
@@ -62,6 +62,5 @@ orderSchema.virtual("address", {
     return this.user.address + ", " + this.user.city + ", " + this.user.state;
 });
 
-console.log(orderSchema.virtuals);
 
 module.exports = mongoose.model("Order", orderSchema);

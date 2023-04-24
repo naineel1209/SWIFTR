@@ -24,6 +24,8 @@ router
         }
     });
 
+//used in a frontend route 
+// TODO might shift later
 router
     .route('/getCart')
     .get(async (req, res) => {
