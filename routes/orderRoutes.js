@@ -52,13 +52,22 @@ router
             convinienceFee,
             clientSecret: paymentIntent.client_secret,
             user: req.user._id,
-        });
+        }).populate('orderItems.service').populate('user').populate('address').exec();
 
         await order.save();
 
         await Cart.deleteMany({ user: req.user._id });
         return res.status(StatusCodes.CREATED).send({ order, clientSecret: order.clientSecret })
     })
+
+router
+    .route('/getOrders')
+    .get(async function (req, res) {
+        //Get All Orders for current user
+        const orders = await Order.find({ user: req.user._id }).populate('orderItems.service').populate('user').populate('address');
+        console.log(orders);
+        return res.status(StatusCodes.OK).send({ orders });
+    });
 
 router
     .route('/:id')
@@ -78,21 +87,17 @@ router
         const { id } = req.params;
         const { paymentIntentId } = req.body;
 
+        if (!paymentIntentId) {
+            throw new NotFoundError("No paymentIntentId found with id " + id);
+        }
+
         const order = await Order.findOne({ _id: id });
         order.paymentIntentId = paymentIntentId;
         order.status = "confirmed";
-
-        return res.send(StatusCodes.OK).send({ order });
+        await order.save();
+        return res.status(StatusCodes.OK).send({ order, redirectUrl: `/orders/${order._id}` });
     });
 
-router
-    .route('/getOrders')
-    .get(async function (req, res) {
-        //Get All Orders for current user
-        const orders = await Order.find({ user: req.user._id }).populate('orderItems.service').populate('user').populate('address');
-        console.log(orders);
-        return res.status(StatusCodes.OK).send({ orders });
-    })
 
 
 

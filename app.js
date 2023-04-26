@@ -10,6 +10,18 @@ const session = require('express-session');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const flash = require('connect-flash');
+const { StatusCodes } = require('http-status-codes');
+const methodOverride = require('method-override');
+const fileUpload = require('express-fileupload');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  secure: true,
+  cloud_name: "dnteevm9m",
+  api_key: "996348578293212",
+  api_secret: "40p15GW_lLK43Fa4pGpxlDRO9tQ"
+
+});
 
 //configuring redis /<**>/ headache code
 const redis = require('redis');
@@ -73,6 +85,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(methodOverride("_method"));
+app.use(fileUpload({
+  useTempFiles: true,
+  tempFileDir: path.join(__dirname, "/tmp"),
+  limits: { fileSize: 50 * 1024 * 1024 },
+}));
 app.use(flash());
 
 // starting the passport middleware
@@ -102,13 +120,39 @@ app.use('/', indexRouter);  //views path
 app.use('/api/v1/auth', authRouter); //auth api path
 app.use('/api/v1/services', isLoggedIn, servicesRouter); //services api path
 app.use('/api/v1/reviews', isLoggedIn, reviewsRouter); // reviews api path
+
+app.post("/api/v1/uploadImage", async (req, res) => {
+  if (!req.files) {
+    throw new NotFoundError("No image found");
+  }
+
+  if (!req.files.image.mimetype.startsWith("image")) {
+    throw new Error("Please upload an valid file of Image type");
+  }
+
+  const imagePath = req.files.image.tempFilePath;
+  console.log("BODY -> ");
+  console.log(req.body);
+
+  const result = await cloudinary.uploader.upload(imagePath, {
+    folder: "swiftr/testing",
+    use_filename: false,
+    filename_override: `${req.user._id}-service-image`,
+  }).then(res => {
+    console.log(res);
+    return res.secure_url;
+  })
+
+  return res.send({ msg: "Image uploaded successfully", filePath: result });
+});
+
 app.use('/api/v1/services/:serviceId', isLoggedIn, cartRouter); //add to cart functionality
 //used in a frontend route -> get current users cart items
 app
   .get("/api/v1/getCart", async (req, res) => {
     const userId = req.user._id;
 
-    const cart = await Cart.find({ user: userId }).populate('service');
+    const cart = await Cart.find({ user: userId }).populate('services').populate('services.user');
 
     if (!cart) {
       throw new NotFoundError("Cart not found, try adding some items to your cart");

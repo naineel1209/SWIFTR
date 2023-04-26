@@ -9,17 +9,17 @@ const { NotFoundError } = require('../errors');
 router
     .route('/addToCart')
     .post(async function (req, res) {
-        const { serviceId } = req.body;
+        const { serviceId } = req.params;
         const userId = req.user._id;
 
-        const cart = await Cart.findOne({ user: userId, service: serviceId });
+        const cart = await Cart.findOne({ user: userId, services: serviceId });
 
         if (cart) {
             cart.quantity = cart.quantity + 1;
             await cart.save();
             return res.status(StatusCodes.OK).send({ data: cart });
         } else {
-            const cart = new Cart({ user: userId, service: serviceId, quantity: 1 });
+            const cart = new Cart({ user: userId, services: serviceId, quantity: 1 });
             await cart.save();
             return res.status(StatusCodes.CREATED).send({ data: cart });
         }
@@ -29,7 +29,7 @@ router
 
         const userId = req.user._id;
 
-        const cart = await Cart.findOne({ user: userId, service: serviceId });
+        const cart = await Cart.findOne({ user: userId, services: serviceId });
 
         if (!cart) {
             throw new NotFoundError("No cart found with this service");
