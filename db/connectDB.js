@@ -7,4 +7,5 @@ module.exports.connectDB = (URI) => {
         console.log("Mongoose Error: " + err);
     });
     mongoose.set('strictQuery', false);
+    mongoose.set('strictPopulate', false);
 }

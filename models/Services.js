@@ -1,6 +1,7 @@
 //  relocate the schemas to particular locations
 
 const mongoose = require('mongoose');
+const User = require('./Users')
 const Review = require('./Reviews');
 
 //Defining the Service Schema
@@ -45,7 +46,7 @@ serviceSchema.virtual("reviews", {
     localField: '_id',
     foreignField: 'services',
     justOne: false,
-})
+});
 
 serviceSchema.post('findOneAndDelete', async function (data, next) {
     const reviews = await Review.deleteMany({ services: data._id });

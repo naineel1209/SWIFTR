@@ -3,6 +3,7 @@ const router = express.Router({ mergeParams: true });
 const { StatusCodes } = require('http-status-codes');
 const User = require('../models//Users');
 const Service = require('../models/Services');
+const Review = require('../models/Reviews');
 const { authorizeUser, checkPermission } = require('../middlewares/isLoggedIn');
 const { CustomAPIError, BadRequestError, NotFoundError, UnauthorizedError } = require('../errors');
 
@@ -10,20 +11,22 @@ router
   .route('/')
   //get all services
   .get(async function (req, res) {
-    if (req.query) {
+    if (req.query.constructor === Object && Object.keys(req.query).length !== 0) {
       const { search, price, limit } = req.query;
 
       const regexp = new RegExp(search, 'i');
       const filter = {};
       filter.$or = [
-        { category: { $elemMatch: { $regex: regexp } } },
+        { category: { $regex: regexp } },
         { name: { $regex: regexp } }
       ]
-      const services = await Service.find(filter).populate('user').populate('reviews').populate('reviews.user');
+      const services = await Service.find(filter).populate('user').exec();
 
       return res.status(StatusCodes.OK).send({ services, count: services.length, user: req.user });
+
     } else {
-      const services = await Service.find({}).populate('user').populate('reviews');
+
+      const services = await Service.find({}).populate('user').exec();
 
       return res.status(StatusCodes.OK).send({ services, count: services.length, user: req.user });
     }
@@ -51,9 +54,11 @@ router.get('/getService', async (req, res) => {
 router
   .route('/:id')
   //get service 
+  // TODO - add populate reviews.user fuctionality
   .get(async (req, res) => {
     const { id } = req.params;
-    const service = await Service.findOne({ _id: id }).populate({ path: 'user' }).populate({ path: 'reviews' }).populate('reviews.user');
+
+    const service = await Service.findById(id).populate('user').populate('reviews').populate({ path: 'reviews.user' }).exec();
 
     if (!service) {
       throw new NotFoundError(`No service with id: ${id}`)
@@ -65,18 +70,20 @@ router
   .patch([authorizeUser('provider', 'admin')], async (req, res) => {
     const { id } = req.params;
 
-    const service = await Service.findByIdAndUpdate({ _id: id }, req.body, {
-      new: true,
-      runValidators: true
-    }).populate({
-      path: 'user',
-    }).populate('reviews');;
+    const service = await Service.findById(id);
 
     if (!service) {
       throw new NotFoundError(`No service found for ${id}`);
     }
 
-    return res.status(StatusCodes.OK).send({ msg: "Successfully made the changes.", service, redirectUrl: `/services/${service._id}` });
+    await checkPermission(req.user, service);
+
+    const finalService = await Service.findByIdAndUpdate({ _id: id }, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    return res.status(StatusCodes.OK).send({ msg: "Successfully made the changes.", finalService, redirectUrl: `/services/${service._id}` });
   })
   //delete the service -- accessible from myservices page
   .delete([authorizeUser('provider', 'admin')], async (req, res) => {

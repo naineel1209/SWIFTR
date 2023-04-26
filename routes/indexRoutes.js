@@ -4,6 +4,7 @@ const { isLoggedIn, storeReturnTo } = require('../middlewares//isLoggedIn')
 
 /* GET home page. */
 router.get('/', isLoggedIn, function (req, res, next) {
+  console.log(req.cookies);
   res.render('index', { title: 'Express' });
 });
 
