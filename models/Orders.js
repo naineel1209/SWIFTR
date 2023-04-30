@@ -43,12 +43,15 @@ const orderSchema = new Schema({
         enum: ["pending", "confirmed", "cancelled"],
         default: "pending",
     },
-    clientSecret: {
-        type: String,
-        required: true
-    },
     paymentIntentId: {
         type: String
+    },
+    deliver_date: {
+        type: Date,
+        default: Date.now() + 48 * 60 * 60 * 1000
+    },
+    stripeSessionId: {
+        type: String,
     }
 
 }, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });

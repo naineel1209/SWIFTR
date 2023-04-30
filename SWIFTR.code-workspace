@@ -3,6 +3,9 @@
 		{
 			"name": "SWIFTR",
 			"path": "."
+		},
+		{
+			"path": "../SWIFTR_Frontend"
 		}
 	],
 	"settings": {}

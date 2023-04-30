@@ -25,7 +25,7 @@ router
         }
     })
     .delete(async function (req, res) {
-        const { serviceId } = req.body;
+        const { serviceId } = req.params;
 
         const userId = req.user._id;
 

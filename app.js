@@ -14,12 +14,13 @@ const { StatusCodes } = require('http-status-codes');
 const methodOverride = require('method-override');
 const fileUpload = require('express-fileupload');
 const cloudinary = require('cloudinary').v2;
+const cors = require('cors');
 
 cloudinary.config({
   secure: true,
-  cloud_name: "dnteevm9m",
-  api_key: "996348578293212",
-  api_secret: "40p15GW_lLK43Fa4pGpxlDRO9tQ"
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 
 });
 
@@ -46,6 +47,7 @@ const sessionConfig = {
     name: "swiftr_id",
     httpOnly: true,
     secure: false,
+    sameSite: 'none',
   },
   name: "sessionId",
 }
@@ -80,8 +82,16 @@ app.set('view engine', 'ejs');
 
 //all important middlewares
 app.use(logger('dev'));
+app.use(cors({
+  credentials: true,
+  origin: "http://localhost:5173",
+}));
 app.use(session(sessionConfig));
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf.toString();
+  }
+}));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -104,11 +114,11 @@ passport.deserializeUser(User.deserializeUser()); //5. passport to use deseriali
 app.use((req, res, next) => {
 
   console.log(req.isAuthenticated());
+
   res.locals.currentUser = req.user;
-
   console.log(res.locals.currentUser);
-  res.locals.returnTo = req.session.returnTo;
 
+  res.locals.returnTo = req.session.returnTo;
   next();
 })
 
@@ -120,7 +130,6 @@ app.use('/', indexRouter);  //views path
 app.use('/api/v1/auth', authRouter); //auth api path
 app.use('/api/v1/services', isLoggedIn, servicesRouter); //services api path
 app.use('/api/v1/reviews', isLoggedIn, reviewsRouter); // reviews api path
-
 app.post("/api/v1/uploadImage", async (req, res) => {
   if (!req.files) {
     throw new NotFoundError("No image found");
@@ -145,11 +154,10 @@ app.post("/api/v1/uploadImage", async (req, res) => {
 
   return res.send({ msg: "Image uploaded successfully", filePath: result });
 });
-
 app.use('/api/v1/services/:serviceId', isLoggedIn, cartRouter); //add to cart functionality
 //used in a frontend route -> get current users cart items
 app
-  .get("/api/v1/getCart", async (req, res) => {
+  .get("/api/v1/getCart", isLoggedIn, async (req, res) => {
     const userId = req.user._id;
 
     const cart = await Cart.find({ user: userId }).populate('services').populate('services.user');
@@ -160,7 +168,7 @@ app
 
     return res.status(StatusCodes.OK).send({ data: cart });
   })
-app.use('/api/v1/orders', isLoggedIn, orderRouter);
+app.use('/api/v1/stripe', orderRouter);
 app.use('/api/v1/services/:serviceId/reviews', isLoggedIn, singleServiceReviewsRouter); //get single productreview
 
 //path to handle loginError

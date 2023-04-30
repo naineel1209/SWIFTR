@@ -27,7 +27,7 @@ router
     } else {
 
       const services = await Service.find({}).populate('user').exec();
-
+      console.log("Insideee");
       return res.status(StatusCodes.OK).send({ services, count: services.length, user: req.user });
     }
   })

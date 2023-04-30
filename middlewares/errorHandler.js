@@ -4,6 +4,7 @@ const errorHandlerMiddleware = (err, req, res, next) => {
         // set default
         statusCode: err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
         msg: err.message || 'Something went wrong try again later',
+        stack: err.stack || null,
     };
 
     if (err.name === 'UserExistsError') {
@@ -39,7 +40,8 @@ const errorHandlerMiddleware = (err, req, res, next) => {
         customError.statusCode = 404;
     }
 
-    console.log("Error?? ", customError.msg)
+    console.log('error: ')
+    console.log(customError);
 
     return res.status(customError.statusCode).json({ msg: customError.msg });
 };
