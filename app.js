@@ -59,6 +59,7 @@ const servicesRouter = require('./routes/servicesRoutes');
 const reviewsRouter = require('./routes/reviewsRoutes');
 const cartRouter = require('./routes/cartRoutes');
 const orderRouter = require('./routes/orderRoutes');
+const myProfileRouter = require('./routes/myProfileRoutes')
 const singleServiceReviewsRouter = require('./routes/singleServiceReviewsRoutes.js');
 const { connectDB } = require('./db/connectDB');
 
@@ -95,7 +96,7 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(methodOverride("_method"));
+app.use(methodOverride("_method")); // to be used in the frontend
 app.use(fileUpload({
   useTempFiles: true,
   tempFileDir: path.join(__dirname, "/tmp"),
@@ -170,7 +171,7 @@ app
   })
 app.use('/api/v1/stripe', orderRouter);
 app.use('/api/v1/services/:serviceId/reviews', isLoggedIn, singleServiceReviewsRouter); //get single productreview
-
+app.use('/api/v1/my-profile', isLoggedIn, myProfileRouter);
 //path to handle loginError
 app.get('/loginError', async (req, res, next) => {
   return res.status(403).send({ msg: "Incorrect Password or Username", redirectUrl: "/login" });
