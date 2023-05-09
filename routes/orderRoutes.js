@@ -101,7 +101,7 @@ router
             cancel_url: `${process.env.BASE_URL}/cancel`,
         });
 
-        res.redirect(303, session.url);
+        return res.status(StatusCodes.OK).json({ session, redirectUrl: '/my-profile' })
     });
 
 
@@ -111,9 +111,10 @@ async function createOrder(customer, checkoutSession) {
     const userId = JSON.parse(customer.metadata.userId);
     Items.user = userId;
     Items.stripeSessionId = checkoutSession.id;
-
+    Items.status = 'confirmed';
     const order = new Order(Items);
     await order.save();
+
     console.log('Order created');
     console.log(order);
 
@@ -125,8 +126,8 @@ const endpointSecret = process.env.ENDPOINT_SECRET;
 router.post('/webhook', (request, response) => {
     const sig = request.headers['stripe-signature'];
 
-    let event;
     //rawBody is a buffer and parsed in the app.js file under express.json() middleware
+    let event;
 
     try {
         event = stripe.webhooks.constructEvent(request.rawBody, sig, endpointSecret);

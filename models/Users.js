@@ -1,6 +1,7 @@
-// TODO: Add profile photo option for the last
+// dropped TODO: Add profile photo option for the last
 
 // done TODO: To understand the flow of the application and make  changes in authorizeUser middleware 
+
 const mongoose = require('mongoose');
 const passportLocalMongoose = require('passport-local-mongoose');
 

@@ -27,6 +27,7 @@ router
         const user = new User({ username, email, roles, phone, address, city, state });
 
         const newUser = await User.register(user, password);
+
         req.login(newUser, (err) => {
             if (err) {
                 throw CustomError.CustomAPIError("Couldn't Login User");

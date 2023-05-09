@@ -21,7 +21,6 @@ cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
-
 });
 
 //configuring redis /<**>/ headache code
@@ -127,10 +126,19 @@ app.use((req, res, next) => {
 //route to handle requests
 
 //TODO: all the get routes go in the indexRouter
-app.use('/', indexRouter);  //views path 
-app.use('/api/v1/auth', authRouter); //auth api path
-app.use('/api/v1/services', isLoggedIn, servicesRouter); //services api path
-app.use('/api/v1/reviews', isLoggedIn, reviewsRouter); // reviews api path
+//views path 
+app.use('/', indexRouter);
+
+//auth api path
+app.use('/api/v1/auth', authRouter);
+
+//services api path
+app.use('/api/v1/services', isLoggedIn, servicesRouter);
+
+// reviews api path
+app.use('/api/v1/reviews', isLoggedIn, reviewsRouter);
+
+//upload Image 
 app.post("/api/v1/uploadImage", async (req, res) => {
   if (!req.files) {
     throw new NotFoundError("No image found");
@@ -140,10 +148,12 @@ app.post("/api/v1/uploadImage", async (req, res) => {
     throw new Error("Please upload an valid file of Image type");
   }
 
+  //getting the imagePath
   const imagePath = req.files.image.tempFilePath;
-  console.log("BODY -> ");
-  console.log(req.body);
+  // console.log("BODY -> ");
+  // console.log(req.body);
 
+  //uploading the image
   const result = await cloudinary.uploader.upload(imagePath, {
     folder: "swiftr/testing",
     use_filename: false,
@@ -153,9 +163,12 @@ app.post("/api/v1/uploadImage", async (req, res) => {
     return res.secure_url;
   })
 
-  return res.send({ msg: "Image uploaded successfully", filePath: result });
 });
-app.use('/api/v1/services/:serviceId', isLoggedIn, cartRouter); //add to cart functionality
+return res.send({ msg: "Image uploaded successfully", filePath: result });
+
+//add to cart functionality
+app.use('/api/v1/services/:serviceId', isLoggedIn, cartRouter);
+
 //used in a frontend route -> get current users cart items
 app
   .get("/api/v1/getCart", isLoggedIn, async (req, res) => {
@@ -168,10 +181,13 @@ app
     }
 
     return res.status(StatusCodes.OK).send({ data: cart });
-  })
+  });
 app.use('/api/v1/stripe', orderRouter);
-app.use('/api/v1/services/:serviceId/reviews', isLoggedIn, singleServiceReviewsRouter); //get single productreview
+
+//get single productreview
+app.use('/api/v1/services/:serviceId/reviews', isLoggedIn, singleServiceReviewsRouter);
 app.use('/api/v1/my-profile', isLoggedIn, myProfileRouter);
+
 //path to handle loginError
 app.get('/loginError', async (req, res, next) => {
   return res.status(403).send({ msg: "Incorrect Password or Username", redirectUrl: "/login" });
@@ -179,9 +195,11 @@ app.get('/loginError', async (req, res, next) => {
 
 // error handler
 app.use(errorHandler);
+
 // path not found
 app.use(notFound)
 
+//start function
 async function start() {
   await connectDB(process.env.MONGO_URI);
 

@@ -4,7 +4,9 @@ const { StatusCodes } = require('http-status-codes');
 const isLoggedIn = async (req, res, next) => {
     if (!req.isAuthenticated()) {
         req.session.returnTo = req.originalUrl;
+
         console.log(req.session.returnTo);
+
         return res.status(StatusCodes.UNAUTHORIZED).send({ msg: "You must be logged in to view this", redirectUrl: "/login" });
     }
 
