@@ -22,6 +22,7 @@ const storeReturnTo = async (req, res, next) => {
 
 const authorizeUser = (...roles) => {
     return (req, res, next) => {
+        //check if the user's roles are not listen in the roles array
         if (!roles.includes(req.user.roles)) {
             throw new UnauthorizedError("You are not authorized to access this page");
         }

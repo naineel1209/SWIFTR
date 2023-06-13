@@ -27,10 +27,7 @@ cloudinary.config({
 const redis = require('redis');
 const RedisStore = require("connect-redis").default;
 
-const redisClient = redis.createClient({
-  port: 6379,
-  host: 'localhost',
-});
+const redisClient = redis.createClient();
 
 //create a redis client and then connect to it;
 redisClient.connect().catch(console.error);
@@ -163,11 +160,9 @@ app.post("/api/v1/uploadImage", async (req, res) => {
     return res.secure_url;
   })
 
+  return res.send({ msg: "Image uploaded successfully", filePath: result });
 });
-return res.send({ msg: "Image uploaded successfully", filePath: result });
 
-//add to cart functionality
-app.use('/api/v1/services/:serviceId', isLoggedIn, cartRouter);
 
 //used in a frontend route -> get current users cart items
 app

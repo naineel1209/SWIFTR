@@ -119,7 +119,7 @@ async function createOrder(customer, checkoutSession) {
     console.log(order);
 
     //TODO : add the delete cart functionality after order is created
-    // await Cart.deleteMany({ user: userId });
+    await Cart.deleteMany({ user: userId });
 }
 
 const endpointSecret = process.env.ENDPOINT_SECRET;
