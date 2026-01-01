@@ -80,7 +80,7 @@ Before running this application, ensure you have the following installed:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/naineel1209/SWIFTR.git
+   git clone <repository-url>
    cd SWIFTR
    ```
 
@@ -258,7 +258,7 @@ The platform supports three distinct user roles:
 
 1. **User**: Can browse services, make bookings, and write reviews
 2. **Provider**: Can create and manage service listings in addition to user capabilities
-3. **Admin**: Has full platform access including user management (first 5 registered users automatically become admins)
+3. **Admin**: Has full platform access including user management and service moderation
 
 ## Security Features
 
